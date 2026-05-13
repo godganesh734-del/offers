@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success! Your Code | FoodSaver USA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-6 font-sans">
+
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] p-10 text-center shadow-2xl border border-slate-100 relative overflow-hidden">
+        
+        <div class="mb-6 flex justify-center">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-500 text-4xl animate-bounce">
+                ✓
+            </div>
+        </div>
+
+        <h2 class="text-3xl font-black text-slate-900 mb-2 tracking-tight">CONGRATS!</h2>
+        <p class="text-slate-500 mb-8 font-medium">Your verification was successful. Here is your unique $25 voucher code:</p>
+
+        <!-- Code Display Box -->
+        <div class="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 mb-8 relative group">
+            <span id="coupon-code" class="text-3xl font-black text-blue-600 tracking-widest uppercase">FOOD25USA</span>
+            <button onclick="copyCode()" class="mt-4 block w-full text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors">
+                Click to Copy
+            </button>
+        </div>
+
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-8">Valid for the next 24 hours only</p>
+
+        <a href="index.html" class="inline-block text-sm font-bold text-slate-900 border-b-2 border-slate-900 pb-1 hover:text-blue-600 hover:border-blue-600 transition-all">
+            Get More Vouchers
+        </a>
+    </div>
+
+    <script>
+        // Automatic Confetti on Load
+        window.onload = function() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#2563eb', '#10b981', '#f59e0b']
+            });
+        };
+
+        // Copy Function
+        function copyCode() {
+            const code = document.getElementById('coupon-code').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Code Copied: " + code);
+        }
+    </script>
+</body>
+</html>
